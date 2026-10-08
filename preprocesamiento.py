@@ -7,28 +7,33 @@ from transformers import AutoTokenizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Dispositivo activo: {device}")
 
-# 2. Rutas a los datasets locales
-# Asegúrate de que el nombre del archivo coincida exactamente con el que se descargo
-ruta_plos = os.path.join("datasets", "PLOS", "train.parquet") 
+ruta_plos = os.path.join("datasets", "PLOS", "train-00000-of-00003.parquet") 
 
 try:
     # Leer el dataset usando el motor optimizado pyarrow
     df_plos = pd.read_parquet(ruta_plos, engine='pyarrow')
     
-    # Extraer una pequeña muestra (batch) para verificar el flujo
-    # Reemplaza 'article' y 'lay_summary' si los nombres de columna varían en el dataset 202X (en 2025 deverian ser estos)
-    textos_tecnicos = df_plos['article'].head(3).tolist()
-    textos_divulgativos = df_plos['lay_summary'].head(3).tolist()
+    # 2. Imprimir las columnas disponibles para depuración
+    print("\nColumnas detectadas en el archivo Parquet:")
+    print(df_plos.columns.tolist())
     
-    print(f"\nSe cargaron {len(textos_tecnicos)} pares de texto para la prueba.")
+    # Intento de adivinar posibles nombres de columna (puedes ajustar esto luego)
+    col_texto = 'article' if 'article' in df_plos.columns else df_plos.columns[0]
+    # Busca alguna columna que contenga 'summary' o 'lay'
+    col_resumen = next((col for col in df_plos.columns if 'summary' in col.lower() or 'lay' in col.lower()), df_plos.columns[1])
+    
+    print(f"\nUsando '{col_texto}' como texto original y '{col_resumen}' como resumen.")
 
-    # 3. Inicializar el tokenizador (mT5 es excelente para transferencia de estilo multilingüe)
+    # Extraer la muestra
+    textos_tecnicos = df_plos[col_texto].head(3).tolist()
+    textos_divulgativos = df_plos[col_resumen].head(3).tolist()
+
+    # 3. Inicializar el tokenizador
     nombre_modelo = "google/mt5-small"
-    print(f"Descargando/Cargando tokenizador: {nombre_modelo}...")
+    print(f"\nDescargando/Cargando tokenizador: {nombre_modelo}...")
     tokenizer = AutoTokenizer.from_pretrained(nombre_modelo)
 
     # 4. Tokenización y envío a la GPU
-    # max_length recorta los textos muy largos para evitar desbordar la VRAM de la GPU
     inputs = tokenizer(
         textos_tecnicos, 
         padding=True, 
@@ -37,14 +42,13 @@ try:
         return_tensors="pt"
     )
     
-    # Transferir los tensores de la RAM a la memoria de la RTX 5060
     inputs = inputs.to(device)
 
     print("\n--- Resultado de la Tokenización ---")
-    print(f"Dimensiones del tensor de entrada (Batch Size, Sequence Length): {inputs['input_ids'].shape}")
+    print(f"Dimensiones del tensor de entrada: {inputs['input_ids'].shape}")
     print(f"Ubicación actual del tensor: {inputs['input_ids'].device}")
 
 except FileNotFoundError:
     print(f"No se encontró el archivo en la ruta: {ruta_plos}")
-except KeyError as e:
-    print(f"Error de columna: Verifica los nombres de las columnas en el dataframe. Detalle: {e}")
+except Exception as e:
+    print(f"Error inesperado: {e}")
