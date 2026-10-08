@@ -1,0 +1,14 @@
+﻿################################################################################
+# Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
+################################################################################
+
+/datasets/ELIFE/test-00000-of-00001.parquet
+/datasets/ELIFE/train-00000-of-00001.parquet
+/datasets/ELIFE/validation-00000-of-00001.parquet
+/datasets/PLOS/test-00000-of-00001.parquet
+/datasets/PLOS/train-00000-of-00003.parquet
+/datasets/PLOS/train-00001-of-00003.parquet
+/datasets/PLOS/train-00002-of-00003.parquet
+/datasets/PLOS/validation-00000-of-00001.parquet
+/.vs
+/venv
