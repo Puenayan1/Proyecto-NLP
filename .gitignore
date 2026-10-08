@@ -13,3 +13,4 @@
 /.vs
 /venv
 /mlflow.db
+/__pycache__
