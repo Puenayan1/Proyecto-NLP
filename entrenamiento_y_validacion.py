@@ -22,7 +22,7 @@ nombre_modelo = "google/mt5-small"
 tokenizer = AutoTokenizer.from_pretrained(nombre_modelo)
 modelo = MT5ForConditionalGeneration.from_pretrained(nombre_modelo, tie_word_embeddings=False).to(device)
 
-optimizador = AdamW(modelo.parameters(), lr=2e-3) # Subimos un poco el learning rate para ver cambios rápidos
+optimizador = AdamW(modelo.parameters(), lr=3e-4) # Subimos un poco el learning rate para ver cambios rápidos
 num_epocas = 80
 
 mlflow.set_experiment("Transferencia_Estilo_Academico")
@@ -58,7 +58,8 @@ with mlflow.start_run(run_name="Overfitting_Sanity_Check"):
                     input_ids=inputs["input_ids"], 
                     attention_mask=inputs["attention_mask"], 
                     max_length=128, 
-                    num_beams=2
+                    num_beams=4
+                    repetition_penalty=2.5
                 )
             
             textos_generados = tokenizer.batch_decode(generados_ids, skip_special_tokens=True)
