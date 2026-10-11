@@ -58,7 +58,7 @@ with mlflow.start_run(run_name="Overfitting_Sanity_Check"):
                     input_ids=inputs["input_ids"], 
                     attention_mask=inputs["attention_mask"], 
                     max_length=128, 
-                    num_beams=4
+                    num_beams=4,
                     repetition_penalty=2.5
                 )
             
